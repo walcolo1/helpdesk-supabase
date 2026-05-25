@@ -138,23 +138,28 @@ export async function deleteResource(resourceId: string) {
 }
 
 export async function getActiveResources(limit?: number) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("No autenticado");
+  try {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("No autenticado");
 
-  return prisma.resource.findMany({
-    where: { isActive: true },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      fileName: true,
-      fileUrl: true,
-      fileSize: true,
-      createdAt: true,
-    }
-  });
+    return await prisma.resource.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        fileName: true,
+        fileUrl: true,
+        fileSize: true,
+        createdAt: true,
+      }
+    });
+  } catch (error) {
+    console.error("Error in getActiveResources:", error);
+    return [];
+  }
 }
 
 export async function getAllResources() {
