@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  agent
+  user
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  waiting_user
+  resolved
+  closed
+  auto_closed
+  on_hold
+  tracking
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  critical
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String?
+  image       String?
+  role        UserRole @default(user)
+  department  String?
+  phone       String?
+  isActive            Boolean  @default(true)
+  mustChangePassword  Boolean  @default(false)
+  expiresAt           DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ticketsCreated  Ticket[] @relation("TicketCreator")
+  ticketsAssigned Ticket[] @relation("TicketAgent")
+  ticketsResolved Ticket[] @relation("TicketResolver")
+  ticketsClosed   Ticket[] @relation("TicketCloser")
+  history         TicketHistory[]  @relation("HistoryAuthor")
+  comments        TicketComment[]  @relation("CommentAuthor")
+  attachments     TicketAttachment[] @relation("AttachmentAuthor")
+  resources       Resource[]       @relation("ResourceAuthor")
+
+  @@map("users")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  icon        String?
+  color       String    @default("#01696f")
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  services    Service[]
+
+  @@map("categories")
+}
+
+model Service {
+  id              String         @id @default(cuid())
+  categoryId      String
+  name            String
+  description     String?
+  slaHours        Int            @default(24)
+  defaultPriority TicketPriority @default(medium)
+  isActive        Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  category        Category       @relation(fields: [categoryId], references: [id])
+  tickets         Ticket[]
+
+  @@unique([categoryId, name])
+  @@map("services")
+}
+
+model Ticket {
+  id           String         @id @default(cuid())
+  ticketNumber String         @unique
+  subject      String
+  description  String
+  status       TicketStatus   @default(open)
+  priority     TicketPriority @default(medium)
+  categoryId   String
+  serviceId    String
+  createdById  String
+  assignedToId String?
+  slaDeadline  DateTime?
+  waitingSince DateTime?
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  resolutionNotes String?
+  resolvedById    String?
+  closedById      String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  service    Service        @relation(fields: [serviceId],    references: [id])
+  createdBy  User           @relation("TicketCreator", fields: [createdById],  references: [id])
+  assignedTo User?          @relation("TicketAgent",   fields: [assignedToId], references: [id])
+  resolvedBy User?          @relation("TicketResolver", fields: [resolvedById], references: [id])
+  closedBy   User?          @relation("TicketCloser",   fields: [closedById],   references: [id])
+  history    TicketHistory[]
+  comments   TicketComment[]
+  attachments TicketAttachment[]
+
+  @@index([status])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@map("tickets")
+}
+
+model TicketHistory {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  field     String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+
+  ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User   @relation("HistoryAuthor", fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_history")
+}
+
+model TicketComment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  content   String
+  isInternal Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User   @relation("CommentAuthor", fields: [userId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_comments")
+}
+
+model TicketAttachment {
+  id           String   @id @default(cuid())
+  ticketId     String
+  uploadedById String
+  fileName     String
+  fileType     String
+  fileSize     Int
+  filePath     String
+  createdAt    DateTime @default(now())
+
+  ticket       Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation("AttachmentAuthor", fields: [uploadedById], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_attachments")
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  fileName    String
+  fileUrl     String
+  fileType    String?
+  fileSize    Int?
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User     @relation("ResourceAuthor", fields: [createdById], references: [id])
+
+  @@index([isActive])
+  @@map("resources")
+}
