@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const initialState: { error?: string; success?: string } = {};
 
 export function UserCreateModal({ onClose }: { onClose: () => void }) {
-  const [state, formAction] = useFormState(createUser, initialState);
+  const [state, formAction] = useFormState(createUser, initialState as any);
 
   if (state?.success) {
     onClose();

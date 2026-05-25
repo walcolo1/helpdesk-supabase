@@ -4,6 +4,7 @@ import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
+// @ts-expect-error - update no está tipado correctamente en esta versión de beta
 export const { auth, signIn, signOut, update, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
   providers: [

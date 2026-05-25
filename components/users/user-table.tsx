@@ -28,8 +28,8 @@ export function UserTable({ users, currentUserId, isAdmin }: { users: UserWithCo
   const [resetModalUser, setResetModalUser] = useState<{id: string, name: string} | null>(null);
   const [extendModalUser, setExtendModalUser] = useState<{id: string, name: string, expiresAt: Date | null} | null>(null);
 
-  const [resetState, resetAction] = useFormState(resetUserPassword, {});
-  const [extendState, extendAction] = useFormState(extendUserAccess, {});
+  const [resetState, resetAction] = useFormState(resetUserPassword, {} as any);
+  const [extendState, extendAction] = useFormState(extendUserAccess, {} as any);
 
   // Cierra los modales al tener éxito
   if (resetState?.success && resetModalUser) {

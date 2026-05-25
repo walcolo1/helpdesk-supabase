@@ -5,7 +5,7 @@ import { createResource } from "@/actions/resources";
 import { Upload, FilePlus, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRef } from "react";
 
-const initialState = {};
+const initialState: { success?: string; error?: string } = {};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
