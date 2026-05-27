@@ -68,16 +68,20 @@ export async function ResourcePreview({ role }: { role: string }) {
                     <span>{resource.fileSize ? formatBytes(resource.fileSize) : "N/A"}</span>
                   </div>
                 </div>
-                <a 
-                  href={resource.fileUrl} 
-                  download 
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                  title="Descargar archivo"
-                >
-                  <Download size={16} />
-                </a>
+                {resource.downloadUrl ? (
+                  <a 
+                    href={resource.downloadUrl} 
+                    download={resource.fileName} 
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    title="Descargar archivo"
+                  >
+                    <Download size={16} />
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-400 italic">No URL</span>
+                )}
               </div>
             ))}
           </div>

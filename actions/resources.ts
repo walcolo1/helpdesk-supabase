@@ -70,18 +70,28 @@ export async function createResource(
     }
 
     // Guardar referencia en base de datos (fileUrl guarda el storagePath)
-    await prisma.resource.create({
-      data: {
-        title,
-        description,
-        fileName: file.name,
-        fileUrl: storagePath, // storagePath, no URL pública
-        fileType: file.type,
-        fileSize: file.size,
-        isActive: true,
-        createdById: session.user.id,
-      },
-    });
+    try {
+      await prisma.resource.create({
+        data: {
+          title,
+          description,
+          fileName: file.name,
+          fileUrl: storagePath, // storagePath, no URL pública
+          fileType: file.type,
+          fileSize: file.size,
+          isActive: true,
+          createdById: session.user.id,
+        },
+      });
+    } catch (dbError) {
+      console.error("Prisma failed to save resource reference. Cleaning up uploaded storage file...", dbError);
+      try {
+        await supabase.storage.from(bucket).remove([storagePath]);
+      } catch (cleanupError) {
+        console.error("Failed to cleanup storage file after database error:", cleanupError);
+      }
+      throw dbError;
+    }
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/resources");
@@ -197,8 +207,8 @@ export async function getActiveResources(limit?: number) {
 
     return resourcesWithUrls;
   } catch (error) {
-    console.error("Error in getActiveResources:", error);
-    return [];
+    console.error("[resources:getActiveResources] Critical error loading resources:", error);
+    throw error;
   }
 }
 
