@@ -3,9 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import path from "path";
-import fs from "fs/promises";
-import crypto from "crypto";
+import { getSupabaseAdmin, getStorageBucket } from "@/lib/supabase-admin";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = [
@@ -15,8 +13,10 @@ const ALLOWED_TYPES = [
   "image/png",
   "image/jpeg",
   "image/jpg",
-  "text/csv"
+  "text/csv",
 ];
+
+const SIGNED_URL_EXPIRES_IN = 60 * 10; // 10 minutos
 
 function sanitizeFilename(filename: string) {
   return filename.replace(/[^a-zA-Z0-9.\-_]/g, "_");
@@ -48,26 +48,34 @@ export async function createResource(
       return { error: "El tipo de archivo no está permitido." };
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "resources");
-    await fs.mkdir(uploadDir, { recursive: true });
+    // Generar ruta segura en Storage
+    const safeFileName = sanitizeFilename(file.name);
+    const storagePath = `${Date.now()}-${safeFileName}`;
 
-    // Generate unique filename to avoid overwrites
-    const ext = path.extname(file.name);
-    const base = path.basename(sanitizeFilename(file.name), ext);
-    const uniqueFileName = `${base}_${crypto.randomBytes(4).toString("hex")}${ext}`;
-    const filePath = path.join(uploadDir, uniqueFileName);
-
+    // Subir a Supabase Storage
+    const supabase = getSupabaseAdmin();
+    const bucket = getStorageBucket();
     const buffer = Buffer.from(await file.arrayBuffer());
-    await fs.writeFile(filePath, buffer);
 
-    const fileUrl = `/uploads/resources/${uniqueFileName}`;
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(storagePath, buffer, {
+        contentType: file.type,
+        upsert: false,
+      });
 
+    if (uploadError) {
+      console.error("Error uploading to Supabase Storage:", uploadError);
+      return { error: "Error al subir el archivo al storage." };
+    }
+
+    // Guardar referencia en base de datos (fileUrl guarda el storagePath)
     await prisma.resource.create({
       data: {
         title,
         description,
         fileName: file.name,
-        fileUrl,
+        fileUrl: storagePath, // storagePath, no URL pública
         fileType: file.type,
         fileSize: file.size,
         isActive: true,
@@ -116,18 +124,23 @@ export async function deleteResource(resourceId: string) {
     throw new Error("Recurso no encontrado.");
   }
 
-  // Attempt to delete physical file
+  // Eliminar de Supabase Storage primero
   try {
-    const uploadDir = path.join(process.cwd(), "public");
-    const filePath = path.join(uploadDir, resource.fileUrl);
-    // basic security check to avoid directory traversal
-    if (filePath.startsWith(uploadDir)) {
-      await fs.unlink(filePath);
+    const supabase = getSupabaseAdmin();
+    const bucket = getStorageBucket();
+    const { error: storageError } = await supabase.storage
+      .from(bucket)
+      .remove([resource.fileUrl]); // fileUrl contiene el storagePath
+
+    if (storageError) {
+      console.warn("No se pudo eliminar el archivo del storage:", storageError.message);
+      // Continuamos para al menos eliminar el registro de BD
     }
   } catch (e) {
-    console.warn(`No se pudo eliminar el archivo físico: ${resource.fileUrl}`);
+    console.warn("Error al conectar con Supabase Storage:", (e as Error).message);
   }
 
+  // Eliminar registro de base de datos
   await prisma.resource.delete({
     where: { id: resourceId },
   });
@@ -137,12 +150,16 @@ export async function deleteResource(resourceId: string) {
   revalidatePath("/dashboard/resources/manage");
 }
 
+/**
+ * Retorna recursos activos con signed URLs para descarga privada.
+ * Cada signed URL expira en SIGNED_URL_EXPIRES_IN segundos.
+ */
 export async function getActiveResources(limit?: number) {
   try {
     const session = await auth();
     if (!session?.user?.id) throw new Error("No autenticado");
 
-    return await prisma.resource.findMany({
+    const resources = await prisma.resource.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "desc" },
       take: limit,
@@ -154,24 +171,74 @@ export async function getActiveResources(limit?: number) {
         fileUrl: true,
         fileSize: true,
         createdAt: true,
-      }
+      },
     });
+
+    // Generar signed URLs para cada recurso
+    const supabase = getSupabaseAdmin();
+    const bucket = getStorageBucket();
+
+    const resourcesWithUrls = await Promise.all(
+      resources.map(async (resource) => {
+        try {
+          const { data, error } = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(resource.fileUrl, SIGNED_URL_EXPIRES_IN);
+
+          return {
+            ...resource,
+            downloadUrl: error ? null : data?.signedUrl ?? null,
+          };
+        } catch {
+          return { ...resource, downloadUrl: null };
+        }
+      })
+    );
+
+    return resourcesWithUrls;
   } catch (error) {
     console.error("Error in getActiveResources:", error);
     return [];
   }
 }
 
+/**
+ * Retorna todos los recursos (activos e inactivos) con signed URLs.
+ * Solo accesible por admins.
+ */
 export async function getAllResources() {
   const session = await auth();
   if (session?.user?.role !== "admin") throw new Error("No autorizado");
 
-  return prisma.resource.findMany({
+  const resources = await prisma.resource.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       createdBy: {
-        select: { name: true }
-      }
-    }
+        select: { name: true },
+      },
+    },
   });
+
+  // Generar signed URLs para cada recurso
+  const supabase = getSupabaseAdmin();
+  const bucket = getStorageBucket();
+
+  const resourcesWithUrls = await Promise.all(
+    resources.map(async (resource) => {
+      try {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(resource.fileUrl, SIGNED_URL_EXPIRES_IN);
+
+        return {
+          ...resource,
+          downloadUrl: error ? null : data?.signedUrl ?? null,
+        };
+      } catch {
+        return { ...resource, downloadUrl: null };
+      }
+    })
+  );
+
+  return resourcesWithUrls;
 }

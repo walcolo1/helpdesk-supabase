@@ -2,11 +2,14 @@ import { auth } from "@/auth";
 import { getActiveResources } from "@/actions/resources";
 import { FileText, Download } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function formatBytes(bytes: number, decimals = 2) {
-  if (!+bytes) return '0 Bytes';
+  if (!+bytes) return "0 Bytes";
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
@@ -34,13 +37,18 @@ export default async function ResourcesPage() {
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {resources.map((resource) => (
-              <div key={resource.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+              <div
+                key={resource.id}
+                className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+              >
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
                     <FileText size={24} />
                   </div>
                   <div>
-                    <h3 className="text-base font-medium text-gray-900 dark:text-white">{resource.title}</h3>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white">
+                      {resource.title}
+                    </h3>
                     {resource.description && (
                       <p className="text-sm text-gray-500 mt-1 mb-2">{resource.description}</p>
                     )}
@@ -55,16 +63,20 @@ export default async function ResourcesPage() {
                   </div>
                 </div>
                 <div className="shrink-0">
-                  <a 
-                    href={resource.fileUrl} 
-                    download
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                  >
-                    <Download size={16} />
-                    Descargar
-                  </a>
+                  {resource.downloadUrl ? (
+                    <a
+                      href={resource.downloadUrl}
+                      download={resource.fileName}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                    >
+                      <Download size={16} />
+                      Descargar
+                    </a>
+                  ) : (
+                    <span className="text-xs text-gray-400 italic">No disponible</span>
+                  )}
                 </div>
               </div>
             ))}
