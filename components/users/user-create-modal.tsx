@@ -1,6 +1,7 @@
 "use client";
 
 import { useFormState, useFormStatus } from "react-dom";
+import { useEffect } from "react";
 import { createUser } from "@/actions/users";
 import { UserPlus, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,9 +11,13 @@ const initialState: { error?: string; success?: string } = {};
 export function UserCreateModal({ onClose }: { onClose: () => void }) {
   const [state, formAction] = useFormState(createUser, initialState as any);
 
-  if (state?.success) {
-    onClose();
-  }
+  // Cierra el modal cuando la creación es exitosa
+  useEffect(() => {
+    if (state?.success) {
+      onClose();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state?.success]);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

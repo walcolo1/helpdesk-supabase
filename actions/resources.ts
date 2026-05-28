@@ -195,11 +195,16 @@ export async function getActiveResources(limit?: number) {
             .from(bucket)
             .createSignedUrl(resource.fileUrl, SIGNED_URL_EXPIRES_IN);
 
+          if (error) {
+            console.error("[resources:signedUrl] createSignedUrl failed for", resource.fileName, "-", error.message);
+          }
+
           return {
             ...resource,
             downloadUrl: error ? null : data?.signedUrl ?? null,
           };
-        } catch {
+        } catch (err) {
+          console.error("[resources:signedUrl] Unexpected error for", resource.fileName, "-", (err as Error).message);
           return { ...resource, downloadUrl: null };
         }
       })
@@ -240,11 +245,16 @@ export async function getAllResources() {
           .from(bucket)
           .createSignedUrl(resource.fileUrl, SIGNED_URL_EXPIRES_IN);
 
+        if (error) {
+          console.error("[resources:signedUrl] createSignedUrl failed for", resource.fileName, "-", error.message);
+        }
+
         return {
           ...resource,
           downloadUrl: error ? null : data?.signedUrl ?? null,
         };
-      } catch {
+      } catch (err) {
+        console.error("[resources:signedUrl] Unexpected error for", resource.fileName, "-", (err as Error).message);
         return { ...resource, downloadUrl: null };
       }
     })

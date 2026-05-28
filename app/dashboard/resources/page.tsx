@@ -75,7 +75,13 @@ export default async function ResourcesPage() {
                       Descargar
                     </a>
                   ) : (
-                    <span className="text-xs text-gray-400 italic">No disponible</span>
+                    <span
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-slate-700 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed opacity-60"
+                      title="Enlace de descarga no disponible. Verifica la configuración de Supabase Storage."
+                    >
+                      <Download size={16} />
+                      No disponible
+                    </span>
                   )}
                 </div>
               </div>

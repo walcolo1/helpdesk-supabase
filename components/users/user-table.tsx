@@ -1,11 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { toggleUserStatus, updateUserRole, resetUserPassword, extendUserAccess } from "@/actions/users";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Shield, Building2, Ticket, CheckCircle2, XCircle, Zap, Calendar, Key, AlertTriangle, CalendarPlus, Loader2, X } from "lucide-react";
-import { useState } from "react";
+import { User, Shield, Building2, Ticket, CheckCircle2, XCircle, Zap, Calendar, Key, CalendarPlus, Loader2, X } from "lucide-react";
 import { useFormState, useFormStatus } from "react-dom";
 
 interface UserWithCounts {
@@ -31,15 +30,21 @@ export function UserTable({ users, currentUserId, isAdmin }: { users: UserWithCo
   const [resetState, resetAction] = useFormState(resetUserPassword, {} as any);
   const [extendState, extendAction] = useFormState(extendUserAccess, {} as any);
 
-  // Cierra los modales al tener éxito
-  if (resetState?.success && resetModalUser) {
-    setResetModalUser(null);
-    resetState.success = undefined; // reset
-  }
-  if (extendState?.success && extendModalUser) {
-    setExtendModalUser(null);
-    extendState.success = undefined; // reset
-  }
+  // Cierra el modal de reset cuando la acción retorna éxito
+  useEffect(() => {
+    if (resetState?.success && resetModalUser) {
+      setResetModalUser(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetState?.success]);
+
+  // Cierra el modal de ampliar acceso cuando la acción retorna éxito
+  useEffect(() => {
+    if (extendState?.success && extendModalUser) {
+      setExtendModalUser(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [extendState?.success]);
 
   const handleToggleStatus = (userId: string, currentStatus: boolean) => {
     if (userId === currentUserId) {

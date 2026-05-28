@@ -80,7 +80,12 @@ export async function ResourcePreview({ role }: { role: string }) {
                     <Download size={16} />
                   </a>
                 ) : (
-                  <span className="text-xs text-gray-400 italic">No URL</span>
+                  <span
+                    className="p-1.5 text-gray-300 rounded-md cursor-not-allowed"
+                    title="Enlace de descarga no disponible. Verifica la configuración de Supabase Storage."
+                  >
+                    <Download size={16} />
+                  </span>
                 )}
               </div>
             ))}
