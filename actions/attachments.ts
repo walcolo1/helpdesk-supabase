@@ -2,53 +2,84 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getSupabaseAdmin, getAttachmentsBucket } from "@/lib/supabase-admin";
 import { revalidatePath } from "next/cache";
-import { mkdir, writeFile } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 
-// Carpeta local para almacenar archivos (fuera de public/ para seguridad)
-const UPLOAD_DIR = join(process.cwd(), "storage", "attachments");
+// Extensiones permitidas
+const ALLOWED_EXTENSIONS = [
+  "jpg", "jpeg", "png", "gif", "webp", "pdf",
+  "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+  "txt", "csv", "zip", "mp4", "mp3",
+];
+
+function getExtension(filename: string): string {
+  return filename.split(".").pop()?.toLowerCase() ?? "";
+}
 
 /**
- * Función auxiliar para procesar y guardar un archivo adjunto
+ * Sube un archivo a Supabase Storage y crea el registro en Prisma.
+ * storagePath guardado en filePath del modelo TicketAttachment.
  */
 export async function saveAttachmentRecord(ticketId: string, userId: string, file: File) {
   if (file.size === 0) return { success: false, error: "El archivo está vacío" };
-  if (file.size > 10 * 1024 * 1024) return { success: false, error: "El archivo excede el tamaño máximo (10MB)" };
+  if (file.size > 10 * 1024 * 1024)
+    return { success: false, error: "El archivo excede el tamaño máximo (10MB)" };
 
-  // Asegurar que el directorio exista
-  if (!existsSync(UPLOAD_DIR)) {
-    await mkdir(UPLOAD_DIR, { recursive: true });
-  }
+  const ext = getExtension(file.name);
+  if (!ALLOWED_EXTENSIONS.includes(ext))
+    return { success: false, error: `Tipo de archivo no permitido (.${ext})` };
+
+  const supabase = getSupabaseAdmin();
+  const bucket = getAttachmentsBucket();
+
+  const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+  const storagePath = `tickets/${ticketId}/${Date.now()}-${safeFileName}`;
 
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const uniquePrefix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-  const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-  const fileNameOnDisk = `${uniquePrefix}-${safeFileName}`;
-  const filePath = join(UPLOAD_DIR, fileNameOnDisk);
+  // Subir a Supabase Storage (bucket privado)
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, buffer, {
+      contentType: file.type || "application/octet-stream",
+      upsert: false,
+    });
 
-  await writeFile(filePath, buffer);
+  if (uploadError) {
+    console.error("[attachments:upload] Error al subir a Supabase Storage:", uploadError);
+    return {
+      success: false,
+      error: "No se pudo subir el archivo. Revise configuración de almacenamiento.",
+    };
+  }
 
-  const attachment = await prisma.ticketAttachment.create({
-    data: {
-      ticketId,
-      uploadedById: userId,
-      fileName: file.name,
-      fileType: file.type || "application/octet-stream",
-      fileSize: file.size,
-      filePath: fileNameOnDisk,
-    },
-  });
+  // Guardar registro en Prisma; si falla, borrar el archivo subido (evitar huérfanos)
+  let attachment;
+  try {
+    attachment = await prisma.ticketAttachment.create({
+      data: {
+        ticketId,
+        uploadedById: userId,
+        fileName: file.name,
+        fileType: file.type || "application/octet-stream",
+        fileSize: file.size,
+        filePath: storagePath, // storagePath en lugar de ruta local
+      },
+    });
+  } catch (prismaError) {
+    console.error("[attachments:upload] Error al guardar en base de datos:", prismaError);
+    // Limpiar archivo subido para no dejarlo huérfano
+    await supabase.storage.from(bucket).remove([storagePath]);
+    return { success: false, error: "No se pudo registrar el archivo en la base de datos." };
+  }
 
-  // Registro de auditoría
+  // Registro de auditoría (best-effort)
   try {
     await prisma.ticketHistory.create({
       data: {
         ticketId,
-        userId: userId,
+        userId,
         field: "attachment",
         oldValue: null,
         newValue: file.name,
@@ -73,14 +104,6 @@ export async function uploadTicketAttachment(ticketId: string, formData: FormDat
 
     if (!ticket) return { success: false, error: "Ticket no encontrado" };
 
-    // Cualquier usuario autenticado con acceso al ticket puede subir archivos
-    // En este sistema, si el usuario puede ver el ticket (por dueño o por ser staff), tiene acceso.
-    // Para simplificar y cumplir el requisito: solo verificamos que esté autenticado.
-    // (La lógica de negocio de quién ve qué ya está en las vistas y el middleware)
-    if (!session?.user) {
-      return { success: false, error: "No tienes permisos para adjuntar archivos" };
-    }
-
     const file = formData.get("file") as File | null;
     if (!file) return { success: false, error: "No se proporcionó ningún archivo" };
 
@@ -90,7 +113,10 @@ export async function uploadTicketAttachment(ticketId: string, formData: FormDat
     revalidatePath(`/dashboard/tickets/${ticketId}`);
     return { success: true };
   } catch (error: any) {
-    console.error("Error al subir archivo:", error);
-    return { success: false, error: error.message || "Error interno al subir el archivo" };
+    console.error("[attachments:upload] Error inesperado:", error);
+    return {
+      success: false,
+      error: "No se pudo subir el archivo. Revise configuración de almacenamiento.",
+    };
   }
 }

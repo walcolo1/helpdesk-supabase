@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { join } from "path";
-import { readFile } from "fs/promises";
-import { existsSync } from "fs";
-
-const UPLOAD_DIR = join(process.cwd(), "storage", "attachments");
+import { getSupabaseAdmin, getAttachmentsBucket } from "@/lib/supabase-admin";
 
 export async function GET(
   req: NextRequest,
@@ -43,17 +39,18 @@ export async function GET(
     return new NextResponse("Archivo no encontrado", { status: 404 });
   }
 
-  const filePath = join(UPLOAD_DIR, attachment.filePath);
-  if (!existsSync(filePath)) {
-    return new NextResponse("Archivo físico no encontrado", { status: 404 });
+  // Generar signed URL temporal (10 minutos) desde Supabase Storage
+  const supabase = getSupabaseAdmin();
+  const bucket = getAttachmentsBucket();
+
+  const { data, error } = await supabase.storage
+    .from(bucket)
+    .createSignedUrl(attachment.filePath, 600);
+
+  if (error || !data?.signedUrl) {
+    console.error("[attachments:download] Error al generar signed URL:", error);
+    return new NextResponse("No se pudo generar el enlace de descarga.", { status: 500 });
   }
 
-  const fileBuffer = await readFile(filePath);
-
-  return new NextResponse(fileBuffer, {
-    headers: {
-      "Content-Type": attachment.fileType,
-      "Content-Disposition": `attachment; filename="${encodeURIComponent(attachment.fileName)}"`,
-    },
-  });
+  return NextResponse.redirect(data.signedUrl);
 }

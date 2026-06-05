@@ -34,7 +34,8 @@ export function TicketAttachments({
       const result = await uploadTicketAttachment(ticketId, formData);
       
       if (!result.success) {
-        alert(result.error || "Error al subir el archivo");
+        const errResult = result as { success: false; error: string };
+        alert(errResult.error || "Error al subir el archivo");
       } else if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
