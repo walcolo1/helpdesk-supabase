@@ -1,10 +1,11 @@
 import { getUsers } from "@/actions/users";
 import { UserTable } from "@/components/users/user-table";
 import { UserFilters } from "@/components/users/user-filters";
-import { Users as UsersIcon, ShieldAlert, UserPlus } from "lucide-react";
+import { Users as UsersIcon, ShieldAlert, UserPlus, Globe } from "lucide-react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { UsersClientControls } from "@/components/users/users-client-controls";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -60,9 +61,20 @@ export default async function UsersPage({
           </div>
         )}
         
-        {(isAdmin || isAgent) && (
-          <UsersClientControls />
-        )}
+        <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link
+              href="/dashboard/users/domains"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-[#131b2e] rounded-lg text-sm font-medium transition-colors shadow-sm"
+            >
+              <Globe size={16} className="text-[#0051d5]" />
+              <span>Dominios Permitidos</span>
+            </Link>
+          )}
+          {(isAdmin || isAgent) && (
+            <UsersClientControls />
+          )}
+        </div>
       </div>
 
       <div className="space-y-6">

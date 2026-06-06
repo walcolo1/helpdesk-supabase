@@ -194,3 +194,14 @@ model Resource {
   @@index([isActive])
   @@map("resources")
 }
+
+model AllowedEmailDomain {
+  id          String   @id @default(cuid())
+  domain      String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("allowed_email_domains")
+}

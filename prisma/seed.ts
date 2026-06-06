@@ -150,7 +150,18 @@ async function main() {
     },
   })
 
-  console.log('Seed ejecutado correctamente. Base de datos inicializada con Usuario, Categorías y Servicios.')
+  // 4. Dominios permitidos iniciales
+  await prisma.allowedEmailDomain.upsert({
+    where: { domain: 'ejercito.mil.co' },
+    update: {},
+    create: {
+      domain: 'ejercito.mil.co',
+      description: 'Dominio institucional del Ejército Nacional de Colombia',
+      isActive: true,
+    },
+  })
+
+  console.log('Seed ejecutado correctamente. Base de datos inicializada con Usuario, Categorías, Servicios y Dominios.')
 }
 
 main()
