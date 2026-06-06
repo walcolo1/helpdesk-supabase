@@ -15,14 +15,14 @@ export default async function TicketsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Mis Tickets</h1>
+        <h1 className="text-2xl font-bold text-[#131b2e] tracking-tight">Mis Tickets</h1>
         <div className="flex items-center gap-2">
           <TicketSearch />
           {isPrivileged && (
             <ExportButton type="tickets" label="Exportar CSV" variant="outline" />
           )}
-          <Link href="/dashboard/tickets/new" className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-gray-900 text-white hover:bg-gray-900/90 h-10 px-4 py-2 gap-2">
-            <PlusCircle size={16} />
+          <Link href="/dashboard/tickets/new" className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0051d5] disabled:pointer-events-none disabled:opacity-50 bg-[#0051d5] hover:bg-[#003fb3] text-white h-9 px-4 gap-2 shadow-sm shadow-[#0051d5]/10 uppercase tracking-wider">
+            <PlusCircle size={14} />
             Nuevo Ticket
           </Link>
         </div>

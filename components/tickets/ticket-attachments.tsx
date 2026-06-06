@@ -60,10 +60,10 @@ export function TicketAttachments({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-          <Paperclip size={16} /> Archivos Adjuntos ({attachments.length})
+    <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-2">
+        <h2 className="text-xs font-bold text-[#131b2e] flex items-center gap-2 uppercase tracking-wider">
+          <Paperclip size={14} className="text-[#0051d5]" /> Adjuntos ({attachments.length})
         </h2>
         
         {canUpload && (
@@ -79,31 +79,31 @@ export function TicketAttachments({
               size="sm"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              className="h-8 gap-1.5"
+              className="h-7 rounded-lg text-[10px] font-bold uppercase tracking-wider border-gray-200 bg-white hover:bg-gray-50 text-[#0051d5] hover:text-[#003fb3] transition-colors"
             >
-              {isUploading ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
-              {isUploading ? "Subiendo..." : "Adjuntar archivo"}
+              {isUploading ? <Loader2 size={12} className="animate-spin" /> : <UploadCloud size={12} />}
+              {isUploading ? "Subiendo..." : "Adjuntar"}
             </Button>
           </div>
         )}
       </div>
 
       {attachments.length === 0 ? (
-        <p className="text-sm text-gray-400 italic text-center py-4">No hay archivos adjuntos</p>
+        <p className="text-xs text-gray-400 italic text-center py-4">No hay archivos adjuntos</p>
       ) : (
         <ul className="space-y-2">
           {attachments.map((attachment) => (
-            <li key={attachment.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors group">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="p-2 bg-white rounded-md text-gray-400 shadow-sm shrink-0">
-                  <FileIcon size={16} />
+            <li key={attachment.id} className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 bg-[#f8fafc] hover:bg-gray-50 transition-colors group">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="p-2 bg-white rounded-md text-[#0051d5]/70 shadow-sm shrink-0 border border-gray-100">
+                  <FileIcon size={14} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-700 truncate" title={attachment.fileName}>
+                  <p className="text-xs font-bold text-[#131b2e] truncate" title={attachment.fileName}>
                     {attachment.fileName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {formatSize(attachment.fileSize)} • Subido por {attachment.uploadedBy.name}
+                  <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                    {formatSize(attachment.fileSize)} • {attachment.uploadedBy.name}
                   </p>
                 </div>
               </div>
@@ -111,10 +111,10 @@ export function TicketAttachments({
                 variant="ghost"
                 size="sm"
                 asChild
-                className="opacity-0 lg:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2"
+                className="opacity-0 lg:opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2 text-gray-400 hover:text-[#0051d5] hover:bg-white hover:border hover:border-gray-200"
               >
                 <a href={`/api/tickets/${ticketId}/attachments/${attachment.id}`} download>
-                  <Download size={14} />
+                  <Download size={12} />
                   <span className="sr-only">Descargar</span>
                 </a>
               </Button>

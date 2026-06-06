@@ -54,11 +54,11 @@ function MetaCard({ icon, label, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 border border-gray-100">
+    <div className="flex items-start gap-3 p-3 rounded-lg bg-[#f8fafc] border border-gray-200 hover:border-gray-300 transition-colors shadow-sm">
       <div className="text-gray-400 mt-0.5 shrink-0">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">{label}</p>
-        <div className="text-sm font-medium text-gray-900">{children}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{label}</p>
+        <div className="text-xs font-bold text-[#131b2e] leading-snug">{children}</div>
       </div>
     </div>
   );
@@ -102,36 +102,36 @@ export default async function TicketDetailPage({
       <div className="flex items-center gap-3">
         <Link
           href="/dashboard/tickets"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-wider"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} />
           Mis Tickets
         </Link>
         <span className="text-gray-300">/</span>
-        <span className="text-sm font-medium text-gray-900">{ticket.ticketNumber}</span>
+        <span className="text-xs font-mono font-bold text-gray-400">#{ticket.ticketNumber}</span>
       </div>
 
       {searchParams?.error === "attachments_failed" && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm flex items-center gap-2">
-          <AlertCircle size={18} className="text-amber-600 shrink-0" />
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2.5 font-medium shadow-sm">
+          <AlertCircle size={16} className="text-amber-600 shrink-0" />
           <p>El ticket fue creado, pero uno o más adjuntos no pudieron cargarse.</p>
         </div>
       )}
 
       {/* ─ Título y badges ──────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{ticket.subject}</h1>
-          <p className="text-sm text-gray-400 mt-1">ID: {ticket.ticketNumber}</p>
+          <h1 className="text-xl font-bold tracking-tight text-[#131b2e]">{ticket.subject}</h1>
+          <p className="text-[10px] font-mono font-bold text-gray-400 mt-1">NÚMERO DE TICKET: #{ticket.ticketNumber}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {/* Status badge */}
-          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${status.badge}`}>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase ring-1 ring-inset ${status.badge}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
             {status.label}
           </span>
           {/* Priority badge */}
-          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${priority.badge}`}>
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase ring-1 ring-inset ${priority.badge}`}>
             {priority.label}
           </span>
           {/* SLA Badge */}
@@ -144,9 +144,9 @@ export default async function TicketDetailPage({
           {canEdit && (
             <Link
               href={`/dashboard/tickets/${ticket.id}/edit`}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0051d5] disabled:pointer-events-none disabled:opacity-50 bg-[#0051d5] hover:bg-[#003fb3] text-white h-8 px-4 gap-2 shadow-sm shadow-[#0051d5]/10 uppercase tracking-wider"
             >
-              <Pencil size={13} />
+              <Pencil size={12} />
               Editar
             </Link>
           )}
@@ -159,34 +159,32 @@ export default async function TicketDetailPage({
         <div className="lg:col-span-2 flex flex-col gap-6">
 
           {/* Descripción */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-700 mb-3">Descripción</h2>
-            <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Descripción del Incidente</h2>
+            <p className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
               {ticket.description}
             </p>
           </div>
 
           {/* Notas de Resolución (si existen) */}
           {(ticket.resolvedAt || ticket.closedAt) && ticket.resolutionNotes && (
-            <Card className="border-emerald-100 bg-emerald-50/20 dark:bg-emerald-900/10 dark:border-emerald-900/30">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30">
-                    <CheckCircle2 size={20} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-emerald-900 dark:text-emerald-400">Solución y Resolución</h3>
-                    <p className="text-sm text-emerald-800 dark:text-emerald-500 mt-1 whitespace-pre-wrap">
-                      {ticket.resolutionNotes}
-                    </p>
-                    <div className="mt-3 flex items-center gap-4 text-xs text-emerald-600/70 dark:text-emerald-500/50">
-                      <span>Resuelto por: {ticket.resolvedBy?.name || ticket.closedBy?.name}</span>
-                      <span>Fecha: {formatDate(ticket.resolvedAt || ticket.closedAt)}</span>
-                    </div>
+            <div className="border border-emerald-200 bg-emerald-50/20 rounded-xl p-6 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                  <CheckCircle2 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-emerald-950 uppercase tracking-wider">Solución y Resolución</h3>
+                  <p className="text-xs text-emerald-900 mt-2 whitespace-pre-wrap leading-relaxed">
+                    {ticket.resolutionNotes}
+                  </p>
+                  <div className="mt-4 flex items-center gap-4 text-[10px] font-semibold text-emerald-700/70">
+                    <span>Resuelto por: {ticket.resolvedBy?.name || ticket.closedBy?.name}</span>
+                    <span>Fecha: {formatDate(ticket.resolvedAt || ticket.closedAt)}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Formulario de Resolución (solo agentes/admin) */}
@@ -212,8 +210,8 @@ export default async function TicketDetailPage({
           </div>
 
           {/* Historial */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-700 mb-4">Historial de Actividad</h2>
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Historial de Actividad</h2>
             <TicketHistoryTimeline history={ticket.history} />
           </div>
 
@@ -222,8 +220,8 @@ export default async function TicketDetailPage({
         {/* ─ Columna lateral (metadata) ──────────────────────────── */}
         <div className="flex flex-col gap-6">
 
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col gap-4">
-            <h2 className="text-sm font-semibold text-gray-700">Información del Ticket</h2>
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6 flex flex-col gap-4">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-2 border-b border-gray-100 pb-2">Información del Ticket</h2>
 
             <MetaCard icon={<Layers size={16} />} label="Categoría">
               {ticket.service.category.name}
@@ -236,7 +234,7 @@ export default async function TicketDetailPage({
             <MetaCard icon={<User size={16} />} label="Creado por">
               <span>{ticket.createdBy.name}</span>
               {ticket.createdBy.department && (
-                <p className="text-xs text-gray-400 font-normal mt-0.5">{ticket.createdBy.department}</p>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5 lowercase capitalize leading-none">{ticket.createdBy.department}</p>
               )}
             </MetaCard>
 
@@ -248,11 +246,11 @@ export default async function TicketDetailPage({
                   <>
                     <span>{ticket.assignedTo.name}</span>
                     {ticket.assignedTo.department && (
-                      <p className="text-xs text-gray-400 font-normal mt-0.5">{ticket.assignedTo.department}</p>
+                      <p className="text-[10px] text-gray-400 font-medium mt-0.5 lowercase capitalize leading-none">{ticket.assignedTo.department}</p>
                     )}
                   </>
                 ) : (
-                  <span className="text-gray-400 font-normal">Sin asignar</span>
+                  <span className="text-gray-400 font-medium italic">Sin asignar</span>
                 )
               )}
             </MetaCard>

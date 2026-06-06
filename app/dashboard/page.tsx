@@ -27,13 +27,13 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full p-2">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-2xl font-bold text-[#131b2e] tracking-tight">
           Bienvenido, {userName}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 capitalize">
-          Rol actual: {userRole === 'admin' ? 'Administrador' : userRole === 'agent' ? 'Agente de Soporte' : 'Usuario Final'}
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Rol actual: {userRole === 'admin' ? 'Administrador del Sistema' : userRole === 'agent' ? 'Agente de Soporte' : 'Usuario Final'}
         </p>
       </div>
 
