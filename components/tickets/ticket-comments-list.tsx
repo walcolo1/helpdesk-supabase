@@ -18,7 +18,7 @@ export function TicketCommentsList({ comments, currentUserId }: TicketCommentsLi
   }
 
   return (
-    <div className="space-y-6 mt-6">
+    <div className="space-y-3">
       <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Comentarios</h3>
       <div className="flex flex-col gap-4">
         {comments.map((comment) => (

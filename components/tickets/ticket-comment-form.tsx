@@ -26,7 +26,7 @@ export function TicketCommentForm({ ticketId, isPrivileged }: TicketCommentFormP
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-6 mt-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
       <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <MessageSquare size={16} />
         Añadir comentario

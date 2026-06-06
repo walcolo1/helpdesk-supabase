@@ -96,7 +96,7 @@ export default async function TicketDetailPage({
     : ticket.comments.filter(c => !c.isInternal);
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col gap-4 max-w-5xl mx-auto w-full">
 
       {/* ─ Cabecera ─────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
@@ -153,28 +153,22 @@ export default async function TicketDetailPage({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* ─ Columna principal (descripción) ─────────────────────── */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
+        <div className="lg:col-span-2 flex flex-col gap-4">
 
           {/* Descripción */}
-          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
-            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Descripción del Incidente</h2>
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-4">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">Descripción del Incidente</h2>
             <p className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed">
               {ticket.description}
             </p>
           </div>
 
-          {/* Historial */}
-          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
-            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Historial de Actividad</h2>
-            <TicketHistoryTimeline history={ticket.history} />
-          </div>
-
           {/* Notas de Resolución (si existen) */}
           {(ticket.resolvedAt || ticket.closedAt) && ticket.resolutionNotes && (
-            <div className="border border-emerald-200 bg-emerald-50/20 rounded-xl p-6 shadow-sm">
+            <div className="border border-emerald-200 bg-emerald-50/20 rounded-xl p-4 shadow-sm">
               <div className="flex items-start gap-3">
                 <div className="p-2 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
                   <CheckCircle2 size={18} />
@@ -209,11 +203,17 @@ export default async function TicketDetailPage({
             />
           )}
 
-          {/* Comentarios */}
-          <div className="flex flex-col gap-6">
-            <TicketCommentsList comments={visibleComments} currentUserId={session?.user?.id} />
-            <TicketCommentForm ticketId={ticket.id} isPrivileged={isPrivileged} />
+          {/* Añadir comentario */}
+          <TicketCommentForm ticketId={ticket.id} isPrivileged={isPrivileged} />
+
+          {/* Historial */}
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-4">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-3 border-b border-gray-100 pb-2">Historial de Actividad</h2>
+            <TicketHistoryTimeline history={ticket.history} />
           </div>
+
+          {/* Lista de comentarios */}
+          <TicketCommentsList comments={visibleComments} currentUserId={session?.user?.id} />
 
         </div>
 

@@ -107,7 +107,7 @@ export async function getTicketById(id: string): Promise<TicketDetail> {
       createdBy:  { select: { id: true, name: true, email: true, department: true } },
       assignedTo: { select: { id: true, name: true, email: true, department: true } },
       history: {
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
         include: {
           user: { select: { id: true, name: true, role: true } },
         },
