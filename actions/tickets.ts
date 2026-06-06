@@ -11,7 +11,21 @@ import { saveAttachmentRecord } from "./attachments";
 // ── Lectura ────────────────────────────────────────────────────────────────────
 
 export async function getTickets() {
+  const session = await auth();
+  if (!session?.user) throw new Error("No autenticado");
+
+  const role = session.user.role;
+  const userId = session.user.id;
+
+  const where: any = {};
+  if (role === "user") {
+    where.createdById = userId;
+  } else if (role === "agent") {
+    where.assignedToId = userId;
+  }
+
   return await prisma.ticket.findMany({
+    where,
     select: {
       id: true,
       ticketNumber: true,
@@ -100,7 +114,10 @@ export type TicketHistoryEvent = Prisma.TicketHistoryGetPayload<{
 export type TicketDetail = TicketWithRelations | null;
 
 export async function getTicketById(id: string): Promise<TicketDetail> {
-  return await prisma.ticket.findUnique({
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("No autenticado");
+
+  const ticket = await prisma.ticket.findUnique({
     where: { id },
     include: {
       service: { include: { category: true } },
@@ -128,6 +145,21 @@ export async function getTicketById(id: string): Promise<TicketDetail> {
       },
     },
   }) as TicketDetail;
+
+  if (!ticket) return null;
+
+  const role = session.user.role;
+  const userId = session.user.id;
+
+  const isAdmin = role === "admin";
+  const isOwner = ticket.createdById === userId;
+  const isAssignedAgent = role === "agent" && ticket.assignedToId === userId;
+
+  if (!isAdmin && !isOwner && !isAssignedAgent) {
+    return null;
+  }
+
+  return ticket;
 }
 
 
@@ -447,6 +479,24 @@ export async function quickAssignTicket(ticketId: string, newAssignedToId: strin
 export async function createComment(ticketId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) throw new Error("No autenticado");
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { createdById: true, assignedToId: true }
+  });
+
+  if (!ticket) throw new Error("Ticket no encontrado");
+
+  const role = session.user.role;
+  const userId = session.user.id;
+
+  const isAdmin = role === "admin";
+  const isOwner = ticket.createdById === userId;
+  const isAssignedAgent = role === "agent" && ticket.assignedToId === userId;
+
+  if (!isAdmin && !isOwner && !isAssignedAgent) {
+    throw new Error("No autorizado");
+  }
 
   const content = formData.get("content") as string;
   const isInternal = formData.get("isInternal") === "true";

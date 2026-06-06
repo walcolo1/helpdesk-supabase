@@ -1,6 +1,6 @@
 import { getTicketById } from "@/actions/tickets";
 import { auth } from "@/auth";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, User, Tag, Layers, Clock, CalendarDays, AlertCircle, Pencil } from "lucide-react";
 import { TicketHistoryTimeline } from "@/components/tickets/ticket-history-timeline";
@@ -72,8 +72,31 @@ export default async function TicketDetailPage({
   params: { id: string };
   searchParams?: { error?: string };
 }) {
-  const [session, ticket, agents] = await Promise.all([
-    auth(),
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const ticketInfo = await prisma.ticket.findUnique({
+    where: { id: params.id },
+    select: { createdById: true, assignedToId: true }
+  });
+
+  if (!ticketInfo) {
+    notFound();
+  }
+
+  const checkRole = session.user.role;
+  const userId = session.user.id;
+  const isAdmin = checkRole === "admin";
+  const isTicketOwner = ticketInfo.createdById === userId;
+  const isAssignedAgent = checkRole === "agent" && ticketInfo.assignedToId === userId;
+
+  if (!isAdmin && !isTicketOwner && !isAssignedAgent) {
+    redirect("/dashboard/tickets");
+  }
+
+  const [ticket, agents] = await Promise.all([
     getTicketById(params.id),
     prisma.user.findMany({
       where: { role: { in: ["admin", "agent"] } },
