@@ -223,17 +223,31 @@ export async function createTicket(prevState: any, formData: FormData) {
     await logHistory(ticket.id, session.user.id, "created", null, ticketNumber);
 
     // Procesar adjuntos
+    let attachmentFailed = false;
     const attachments = formData.getAll("attachments") as File[];
     if (attachments && attachments.length > 0) {
       for (const file of attachments) {
         if (file.name && file.size > 0) {
-          await saveAttachmentRecord(ticket.id, session.user.id, file);
+          try {
+            const res = await saveAttachmentRecord(ticket.id, session.user.id, file);
+            if (!res.success) {
+              attachmentFailed = true;
+              console.error("[tickets:create:attachments] Error al guardar adjunto:", res.error);
+            }
+          } catch (err) {
+            attachmentFailed = true;
+            console.error("[tickets:create:attachments] Excepción al guardar adjunto:", err);
+          }
         }
       }
     }
 
     revalidatePath("/dashboard/tickets");
-    redirect(`/dashboard/tickets/${ticket.id}`);
+    if (attachmentFailed) {
+      redirect(`/dashboard/tickets/${ticket.id}?error=attachments_failed`);
+    } else {
+      redirect(`/dashboard/tickets/${ticket.id}`);
+    }
   } catch (error: any) {
     if (error.digest?.includes("NEXT_REDIRECT")) throw error;
     console.error("Error al crear ticket:", error);

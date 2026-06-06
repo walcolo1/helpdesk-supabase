@@ -67,8 +67,10 @@ function MetaCard({ icon, label, children }: {
 // ── Página principal ──────────────────────────────────────────────────────────
 export default async function TicketDetailPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { error?: string };
 }) {
   const [session, ticket, agents] = await Promise.all([
     auth(),
@@ -108,6 +110,13 @@ export default async function TicketDetailPage({
         <span className="text-gray-300">/</span>
         <span className="text-sm font-medium text-gray-900">{ticket.ticketNumber}</span>
       </div>
+
+      {searchParams?.error === "attachments_failed" && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm flex items-center gap-2">
+          <AlertCircle size={18} className="text-amber-600 shrink-0" />
+          <p>El ticket fue creado, pero uno o más adjuntos no pudieron cargarse.</p>
+        </div>
+      )}
 
       {/* ─ Título y badges ──────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
