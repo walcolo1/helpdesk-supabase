@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createAllowedDomain, toggleDomainStatus, deleteAllowedDomain } from "@/actions/domains";
+import { createAllowedDomain, toggleAllowedDomain, deleteAllowedDomain } from "@/actions/domains";
 import { Globe, Plus, Trash2, ArrowLeft, Loader2, Check, X, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ export function DomainManager({ initialDomains }: DomainManagerProps) {
     formData.append("description", descriptionInput);
 
     startTransition(async () => {
-      const result = await createAllowedDomain(null, formData);
+      const result = await createAllowedDomain(formData);
       if (result.error) {
         setErrorMsg(result.error);
       } else {
@@ -78,7 +78,7 @@ export function DomainManager({ initialDomains }: DomainManagerProps) {
     setActionPendingId(domainId);
     startTransition(async () => {
       try {
-        await toggleDomainStatus(domainId, currentStatus);
+        await toggleAllowedDomain(domainId);
         setDomains((prev) =>
           prev.map((d) => (d.id === domainId ? { ...d, isActive: !currentStatus } : d))
         );

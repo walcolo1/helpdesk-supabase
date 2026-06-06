@@ -15,7 +15,7 @@ export async function getAllowedDomains() {
   });
 }
 
-export async function createAllowedDomain(prevState: any, formData: FormData) {
+export async function createAllowedDomain(formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "admin") {
     return { error: "No autorizado" };
@@ -29,7 +29,7 @@ export async function createAllowedDomain(prevState: any, formData: FormData) {
   }
 
   // Normalizar: quitar espacios, convertir a minúsculas
-  let domain = rawDomain.trim().toLowerCase();
+  let domain = rawDomain.replace(/\s+/g, "").toLowerCase();
 
   // Quitar @ si el administrador lo escribe al inicio
   if (domain.startsWith("@")) {
@@ -66,16 +66,24 @@ export async function createAllowedDomain(prevState: any, formData: FormData) {
   }
 }
 
-export async function toggleDomainStatus(domainId: string, currentStatus: boolean) {
+export async function toggleAllowedDomain(id: string) {
   const session = await auth();
   if (session?.user?.role !== "admin") {
     throw new Error("No autorizado");
   }
 
   try {
+    const domain = await prisma.allowedEmailDomain.findUnique({
+      where: { id },
+    });
+
+    if (!domain) {
+      throw new Error("Dominio no encontrado");
+    }
+
     await prisma.allowedEmailDomain.update({
-      where: { id: domainId },
-      data: { isActive: !currentStatus },
+      where: { id },
+      data: { isActive: !domain.isActive },
     });
 
     revalidatePath("/dashboard/users/domains");
@@ -85,7 +93,7 @@ export async function toggleDomainStatus(domainId: string, currentStatus: boolea
   }
 }
 
-export async function deleteAllowedDomain(domainId: string) {
+export async function deleteAllowedDomain(id: string) {
   const session = await auth();
   if (session?.user?.role !== "admin") {
     throw new Error("No autorizado");
@@ -93,7 +101,7 @@ export async function deleteAllowedDomain(domainId: string) {
 
   try {
     await prisma.allowedEmailDomain.delete({
-      where: { id: domainId },
+      where: { id },
     });
 
     revalidatePath("/dashboard/users/domains");

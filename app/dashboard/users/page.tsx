@@ -68,7 +68,7 @@ export default async function UsersPage({
               className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:border-gray-400 bg-white hover:bg-gray-50 text-[#131b2e] rounded-lg text-sm font-medium transition-colors shadow-sm"
             >
               <Globe size={16} className="text-[#0051d5]" />
-              <span>Dominios Permitidos</span>
+              <span>Dominios permitidos</span>
             </Link>
           )}
           {(isAdmin || isAgent) && (
