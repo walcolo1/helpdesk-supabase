@@ -166,6 +166,12 @@ export default async function TicketDetailPage({
             </p>
           </div>
 
+          {/* Historial */}
+          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
+            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Historial de Actividad</h2>
+            <TicketHistoryTimeline history={ticket.history} />
+          </div>
+
           {/* Notas de Resolución (si existen) */}
           {(ticket.resolvedAt || ticket.closedAt) && ticket.resolutionNotes && (
             <div className="border border-emerald-200 bg-emerald-50/20 rounded-xl p-6 shadow-sm">
@@ -207,12 +213,6 @@ export default async function TicketDetailPage({
           <div className="flex flex-col gap-6">
             <TicketCommentsList comments={visibleComments} currentUserId={session?.user?.id} />
             <TicketCommentForm ticketId={ticket.id} isPrivileged={isPrivileged} />
-          </div>
-
-          {/* Historial */}
-          <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm p-6">
-            <h2 className="text-xs font-bold text-[#131b2e] uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Historial de Actividad</h2>
-            <TicketHistoryTimeline history={ticket.history} />
           </div>
 
         </div>
