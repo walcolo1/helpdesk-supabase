@@ -10,9 +10,14 @@ export async function getAllowedDomains() {
     throw new Error("No autorizado");
   }
 
-  return await prisma.allowedEmailDomain.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    return await prisma.allowedEmailDomain.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("[domains:getAllowedDomains]", error);
+    return [];
+  }
 }
 
 export async function createAllowedDomain(formData: FormData) {
