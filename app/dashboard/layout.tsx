@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
+import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { headers } from "next/headers";
 import { Search } from "lucide-react";
 
@@ -33,8 +34,9 @@ export default async function DashboardLayout({
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar superior */}
         <header className="h-16 border-b border-[#c6c6cd] bg-white flex items-center justify-between px-6 md:px-8 shrink-0 z-10 shadow-sm">
-          <div className="flex items-center gap-4 w-72 md:w-96">
-            <div className="relative w-full">
+          <div className="flex items-center gap-4 flex-1 sm:flex-initial">
+            <MobileSidebar session={session} />
+            <div className="relative w-full hidden sm:block sm:w-72 md:w-96">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
                 <Search size={16} />
               </span>

@@ -205,3 +205,14 @@ model AllowedEmailDomain {
 
   @@map("allowed_email_domains")
 }
+
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}

@@ -78,6 +78,13 @@ export function Sidebar({ session }: { session: Session }) {
               <List size={16} />
               Catálogo de Servicios
             </Link>
+            <Link 
+              href="/dashboard/settings" 
+              className={getLinkClass("/dashboard/settings")}
+            >
+              <Settings size={16} />
+              Configuración
+            </Link>
           </>
         )}
 

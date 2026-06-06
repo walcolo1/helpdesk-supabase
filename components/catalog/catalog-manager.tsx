@@ -93,7 +93,7 @@ export function CatalogManager({ categories, services }: { categories: any[], se
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-220px)] min-h-[500px]">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto lg:h-[calc(100vh-220px)] min-h-[500px]">
       <div className="lg:col-span-1">
         <CategoryList 
           categories={categories} 

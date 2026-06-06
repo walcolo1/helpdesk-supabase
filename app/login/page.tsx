@@ -79,6 +79,9 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Contraseña
                 </Label>
+                <Link href="/forgot-password" className="text-[11px] font-semibold text-[#0051d5] hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
               </div>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">

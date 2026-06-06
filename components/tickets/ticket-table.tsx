@@ -30,69 +30,128 @@ export function TicketTable({ tickets }: { tickets: TicketSummary[] }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-[#c6c6cd] shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs text-left text-gray-600">
-          <thead className="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 border-b border-[#c6c6cd] font-bold">
-            <tr>
-              <th scope="col" className="px-6 py-4">
-                ID / Número
-              </th>
-              <th scope="col" className="px-6 py-4">
-                Asunto
-              </th>
-              <th scope="col" className="px-6 py-4">
-                Estado
-              </th>
-              <th scope="col" className="px-6 py-4">
-                Prioridad
-              </th>
-              <th scope="col" className="px-6 py-4">
-                Fecha de Reporte
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 font-medium">
-            {tickets.map((ticket) => {
-              const status = statusConfig[ticket.status] || { label: ticket.status, color: "bg-gray-50 text-gray-600 border border-gray-200" };
-              const priority = priorityConfig[ticket.priority] || { label: ticket.priority, color: "bg-gray-50 text-gray-600 border border-gray-200" };
+    <div className="space-y-4">
+      {/* Mobile Card Layout */}
+      <div className="block md:hidden space-y-4">
+        {tickets.map((ticket) => {
+          const status = statusConfig[ticket.status] || { label: ticket.status, color: "bg-gray-50 text-gray-600 border border-gray-200" };
+          const priority = priorityConfig[ticket.priority] || { label: ticket.priority, color: "bg-gray-50 text-gray-600 border border-gray-200" };
+          
+          return (
+            <div 
+              key={ticket.id} 
+              className="bg-white p-5 rounded-xl border border-[#c6c6cd] shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-bold text-xs text-[#131b2e]">
+                  <Link href={`/dashboard/tickets/${ticket.id}`} className="hover:text-[#0051d5] transition-colors">
+                    {ticket.ticketNumber}
+                  </Link>
+                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] uppercase font-bold ${priority.color}`}>
+                  {priority.label}
+                </span>
+              </div>
               
-              return (
-                <tr key={ticket.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="px-6 py-4 font-mono font-bold text-[#131b2e] whitespace-nowrap">
-                    <Link href={`/dashboard/tickets/${ticket.id}`} className="hover:text-[#0051d5] transition-colors">
-                      {ticket.ticketNumber}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 max-w-xs md:max-w-md truncate">
-                    <Link href={`/dashboard/tickets/${ticket.id}`} className="font-semibold text-gray-700 group-hover:text-[#0051d5] transition-colors block">
-                      {ticket.subject}
-                    </Link>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold ${status.color}`}>
-                      {status.label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold ${priority.color}`}>
-                      {priority.label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500 font-normal">
-                    {new Intl.DateTimeFormat('es-ES', { 
-                      day: '2-digit', 
-                      month: 'short', 
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }).format(new Date(ticket.createdAt))}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              <div>
+                <Link 
+                  href={`/dashboard/tickets/${ticket.id}`} 
+                  className="font-semibold text-sm text-gray-700 hover:text-[#0051d5] transition-colors block leading-snug"
+                >
+                  {ticket.subject}
+                </Link>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  {new Intl.DateTimeFormat('es-ES', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }).format(new Date(ticket.createdAt))}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold ${status.color}`}>
+                  {status.label}
+                </span>
+                <Link 
+                  href={`/dashboard/tickets/${ticket.id}`} 
+                  className="text-[11px] font-bold text-[#0051d5] hover:text-[#003fb3] uppercase tracking-wider transition-colors"
+                >
+                  Ver Detalles →
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table Layout */}
+      <div className="hidden md:block bg-white rounded-xl border border-[#c6c6cd] shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs text-left text-gray-600">
+            <thead className="text-[10px] text-gray-400 uppercase tracking-widest bg-gray-50 border-b border-[#c6c6cd] font-bold">
+              <tr>
+                <th scope="col" className="px-6 py-4">
+                  ID / Número
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Asunto
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Estado
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Prioridad
+                </th>
+                <th scope="col" className="px-6 py-4">
+                  Fecha de Reporte
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 font-medium">
+              {tickets.map((ticket) => {
+                const status = statusConfig[ticket.status] || { label: ticket.status, color: "bg-gray-50 text-gray-600 border border-gray-200" };
+                const priority = priorityConfig[ticket.priority] || { label: ticket.priority, color: "bg-gray-50 text-gray-600 border border-gray-200" };
+                
+                return (
+                  <tr key={ticket.id} className="hover:bg-gray-50/50 transition-colors group">
+                    <td className="px-6 py-4 font-mono font-bold text-[#131b2e] whitespace-nowrap">
+                      <Link href={`/dashboard/tickets/${ticket.id}`} className="hover:text-[#0051d5] transition-colors">
+                        {ticket.ticketNumber}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 max-w-xs md:max-w-md truncate">
+                      <Link href={`/dashboard/tickets/${ticket.id}`} className="font-semibold text-gray-700 group-hover:text-[#0051d5] transition-colors block">
+                        {ticket.subject}
+                      </Link>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold ${status.color}`}>
+                        {status.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] uppercase font-bold ${priority.color}`}>
+                        {priority.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-500 font-normal">
+                      {new Intl.DateTimeFormat('es-ES', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }).format(new Date(ticket.createdAt))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

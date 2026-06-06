@@ -93,142 +93,285 @@ export function UserTable({ users, currentUserId, isAdmin }: { users: UserWithCo
   };
 
   return (
-    <div className="bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="text-xs text-gray-400 uppercase bg-gray-50/50 dark:bg-slate-900/50 border-b dark:border-slate-800">
-            <tr>
-              <th className="px-6 py-4 font-semibold">Usuario</th>
-              <th className="px-6 py-4 font-semibold">Rol & Depto</th>
-              <th className="px-6 py-4 font-semibold">Actividad</th>
-              <th className="px-6 py-4 font-semibold">Estado</th>
-              <th className="px-6 py-4 font-semibold text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y dark:divide-slate-800">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50/80 dark:hover:bg-slate-900/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
-                      <User size={16} />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-gray-900 dark:text-white">{user.name}</span>
-                      <span className="text-gray-500 text-[11px]">{user.email}</span>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                        <Calendar size={10} />
-                        <span>Desde {new Date(user.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
+    <div className="space-y-4">
+      {/* Mobile Card Layout */}
+      <div className="block md:hidden space-y-4">
+        {users.map((user) => {
+          const expStatus = getExpirationStatus(user);
+          return (
+            <div 
+              key={user.id} 
+              className="bg-white dark:bg-slate-950 p-5 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 space-y-3"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 shrink-0">
+                    <User size={16} />
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1.5">
+                  <div>
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-tight">{user.name}</h4>
+                    <p className="text-xs text-gray-500 truncate max-w-[170px]">{user.email}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge 
+                    variant={expStatus.variant as any}
+                    className={`${expStatus.className} text-[9px] px-1.5 py-0.5`}
+                  >
+                    {expStatus.label}
+                  </Badge>
+                  {user.expiresAt && (
+                    <span className="text-[9px] text-gray-400">
+                      Vence: {new Date(user.expiresAt).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 py-2 border-y border-gray-100 dark:border-slate-800 text-xs">
+                <div>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rol & Depto</p>
+                  <div className="mt-1 flex flex-col gap-1">
                     {isAdmin && user.id !== currentUserId ? (
                       <select
                         disabled={isPending}
                         value={user.role}
                         onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                        className="text-xs h-7 px-2 rounded border border-gray-200 dark:border-slate-800 bg-transparent focus:ring-1 focus:ring-indigo-500/20 outline-none w-fit font-medium"
+                        className="text-xs h-7 px-1.5 rounded border border-gray-200 dark:border-slate-800 bg-transparent focus:ring-1 focus:ring-indigo-500/20 outline-none w-full font-medium"
                       >
                         <option value="admin">Administrador</option>
                         <option value="agent">Agente</option>
                         <option value="user">Usuario Final</option>
                       </select>
                     ) : (
-                      <div className="flex items-center gap-1.5 text-xs">
+                      <div className="flex items-center gap-1 text-xs">
                         <Shield size={12} className="text-indigo-500" />
                         <span className="capitalize font-medium text-gray-700 dark:text-gray-300">{user.role}</span>
                       </div>
                     )}
                     {user.department && (
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <Building2 size={12} />
-                        <span>{user.department}</span>
+                      <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5">
+                        <Building2 size={11} className="shrink-0" />
+                        <span className="truncate">{user.department}</span>
                       </div>
                     )}
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <div className="flex items-center gap-1" title="Tickets Asignados">
-                        <Zap size={12} className="text-amber-500" />
+                </div>
+
+                <div>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Actividad & Registro</p>
+                  <div className="mt-1 space-y-1">
+                    <div className="flex items-center gap-3 text-gray-500">
+                      <div className="flex items-center gap-0.5" title="Tickets Asignados">
+                        <Zap size={11} className="text-amber-500" />
                         <span>{user._count.ticketsAssigned}</span>
                       </div>
-                      <div className="flex items-center gap-1" title="Tickets Creados">
-                        <Ticket size={12} className="text-indigo-500" />
+                      <div className="flex items-center gap-0.5" title="Tickets Creados">
+                        <Ticket size={11} className="text-indigo-500" />
                         <span>{user._count.ticketsCreated}</span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <Calendar size={10} className="shrink-0" />
+                      <span>{new Date(user.createdAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col items-start gap-1">
-                    <Badge 
-                      variant={getExpirationStatus(user).variant as any}
-                      className={getExpirationStatus(user).className}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                {isAdmin && user.id !== currentUserId ? (
+                  <div className="flex items-center gap-2 w-full justify-between">
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() => setExtendModalUser({ id: user.id, name: user.name, expiresAt: user.expiresAt })}
+                        className="text-indigo-600 hover:text-indigo-700 h-8 px-2 text-xs"
+                        title="Ampliar Acceso"
+                      >
+                        <CalendarPlus size={14} className="mr-1" />
+                        Venc.
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={isPending}
+                        onClick={() => setResetModalUser({ id: user.id, name: user.name })}
+                        className="text-gray-600 hover:text-indigo-600 h-8 px-2 text-xs"
+                        title="Restablecer Contraseña"
+                      >
+                        <Key size={14} className="mr-1" />
+                        Clave
+                      </Button>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isPending}
+                      onClick={() => handleToggleStatus(user.id, user.isActive)}
+                      className={user.isActive 
+                        ? "text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2.5 text-xs font-semibold" 
+                        : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8 px-2.5 text-xs font-semibold"
+                      }
                     >
-                      {getExpirationStatus(user).label}
-                    </Badge>
-                    {user.expiresAt && (
-                      <span className="text-[10px] text-gray-500">
-                        Vence: {new Date(user.expiresAt).toLocaleDateString()}
-                      </span>
-                    )}
+                      {user.isActive ? (
+                        <><XCircle size={14} className="mr-1" /> Desactivar</>
+                      ) : (
+                        <><CheckCircle2 size={14} className="mr-1" /> Activar</>
+                      )}
+                    </Button>
                   </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    {isAdmin && user.id !== currentUserId && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isPending}
-                          onClick={() => setExtendModalUser({ id: user.id, name: user.name, expiresAt: user.expiresAt })}
-                          className="text-indigo-600 hover:text-indigo-700 h-8 px-2"
-                          title="Ampliar Acceso"
-                        >
-                          <CalendarPlus size={14} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isPending}
-                          onClick={() => setResetModalUser({ id: user.id, name: user.name })}
-                          className="text-gray-600 hover:text-indigo-600 h-8 px-2"
-                          title="Restablecer Contraseña"
-                        >
-                          <Key size={14} />
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={isPending}
-                          onClick={() => handleToggleStatus(user.id, user.isActive)}
-                          className={user.isActive ? "text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8 px-2"}
-                        >
-                          {user.isActive ? (
-                            <><XCircle size={14} className="mr-1" /> Desactivar</>
-                          ) : (
-                            <><CheckCircle2 size={14} className="mr-1" /> Activar</>
-                          )}
-                        </Button>
-                      </>
-                    )}
-                    {user.id === currentUserId && (
-                      <span className="text-[10px] font-bold text-indigo-500 uppercase italic">Tú</span>
-                    )}
+                ) : user.id === currentUserId ? (
+                  <div className="w-full text-right">
+                    <span className="text-[10px] font-bold text-indigo-500 uppercase italic">Tú</span>
                   </div>
-                </td>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
+      {/* Desktop Table Layout */}
+      <div className="hidden md:block bg-white dark:bg-slate-950 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-400 uppercase bg-gray-50/50 dark:bg-slate-900/50 border-b dark:border-slate-800">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Usuario</th>
+                <th className="px-6 py-4 font-semibold">Rol & Depto</th>
+                <th className="px-6 py-4 font-semibold">Actividad</th>
+                <th className="px-6 py-4 font-semibold">Estado</th>
+                <th className="px-6 py-4 font-semibold text-right">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y dark:divide-slate-800">
+              {users.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-50/80 dark:hover:bg-slate-900/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600">
+                        <User size={16} />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-900 dark:text-white">{user.name}</span>
+                        <span className="text-gray-500 text-[11px]">{user.email}</span>
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
+                          <Calendar size={10} />
+                          <span>Desde {new Date(user.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1.5">
+                      {isAdmin && user.id !== currentUserId ? (
+                        <select
+                          disabled={isPending}
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className="text-xs h-7 px-2 rounded border border-gray-200 dark:border-slate-800 bg-transparent focus:ring-1 focus:ring-indigo-500/20 outline-none w-fit font-medium"
+                        >
+                          <option value="admin">Administrador</option>
+                          <option value="agent">Agente</option>
+                          <option value="user">Usuario Final</option>
+                        </select>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Shield size={12} className="text-indigo-500" />
+                          <span className="capitalize font-medium text-gray-700 dark:text-gray-300">{user.role}</span>
+                        </div>
+                      )}
+                      {user.department && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <Building2 size={12} />
+                          <span>{user.department}</span>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-1" title="Tickets Asignados">
+                          <Zap size={12} className="text-amber-500" />
+                          <span>{user._count.ticketsAssigned}</span>
+                        </div>
+                        <div className="flex items-center gap-1" title="Tickets Creados">
+                          <Ticket size={12} className="text-indigo-500" />
+                          <span>{user._count.ticketsCreated}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge 
+                        variant={getExpirationStatus(user).variant as any}
+                        className={getExpirationStatus(user).className}
+                      >
+                        {getExpirationStatus(user).label}
+                      </Badge>
+                      {user.expiresAt && (
+                        <span className="text-[10px] text-gray-500">
+                          Vence: {new Date(user.expiresAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {isAdmin && user.id !== currentUserId && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isPending}
+                            onClick={() => setExtendModalUser({ id: user.id, name: user.name, expiresAt: user.expiresAt })}
+                            className="text-indigo-600 hover:text-indigo-700 h-8 px-2"
+                            title="Ampliar Acceso"
+                          >
+                            <CalendarPlus size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isPending}
+                            onClick={() => setResetModalUser({ id: user.id, name: user.name })}
+                            className="text-gray-600 hover:text-indigo-600 h-8 px-2"
+                            title="Restablecer Contraseña"
+                          >
+                            <Key size={14} />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={isPending}
+                            onClick={() => handleToggleStatus(user.id, user.isActive)}
+                            className={user.isActive ? "text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 h-8 px-2"}
+                          >
+                            {user.isActive ? (
+                              <><XCircle size={14} className="mr-1" /> Desactivar</>
+                            ) : (
+                              <><CheckCircle2 size={14} className="mr-1" /> Activar</>
+                            )}
+                          </Button>
+                        </>
+                      )}
+                      {user.id === currentUserId && (
+                        <span className="text-[10px] font-bold text-indigo-500 uppercase italic">Tú</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal Restablecer Contraseña */}
