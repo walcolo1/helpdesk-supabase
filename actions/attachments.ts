@@ -21,6 +21,13 @@ function getExtension(filename: string): string {
  * storagePath guardado en filePath del modelo TicketAttachment.
  */
 export async function saveAttachmentRecord(ticketId: string, userId: string, file: File) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    return { success: false, error: "Storage no configurado. Verifique variables de Supabase." };
+  }
+
   if (file.size === 0) return { success: false, error: "El archivo está vacío" };
   if (file.size > 10 * 1024 * 1024)
     return { success: false, error: "El archivo excede el tamaño máximo (10MB)" };

@@ -14,32 +14,48 @@ export async function getDashboardStats() {
 
     const baseWhere = isAgentOrAdmin ? {} : { createdById: userId };
 
-    // Run all counts in parallel
-    const [
-      total,
-      open,
-      inProgress,
-      critical,
-      resolvedOrClosed
-    ] = await Promise.all([
-      prisma.ticket.count({ where: baseWhere }),
-      prisma.ticket.count({ where: { ...baseWhere, status: "open" } }),
-      prisma.ticket.count({ where: { ...baseWhere, status: "in_progress" } }),
-      prisma.ticket.count({ where: { ...baseWhere, priority: "critical" } }),
+    // Optimized count retrieval: 2 queries instead of 5
+    const [statusGroups, critical] = await Promise.all([
+      prisma.ticket.groupBy({
+        by: ["status"],
+        _count: {
+          id: true,
+        },
+        where: baseWhere,
+      }),
       prisma.ticket.count({
         where: {
           ...baseWhere,
-          status: { in: ["resolved", "closed", "auto_closed"] }
-        }
+          priority: "critical",
+        },
       }),
     ]);
+
+    // Parse counts from status groups
+    let total = 0;
+    let open = 0;
+    let inProgress = 0;
+    let resolvedOrClosed = 0;
+
+    for (const group of statusGroups) {
+      const count = group._count.id;
+      total += count;
+      
+      if (group.status === "open") {
+        open = count;
+      } else if (group.status === "in_progress") {
+        inProgress = count;
+      } else if (["resolved", "closed", "auto_closed"].includes(group.status)) {
+        resolvedOrClosed += count;
+      }
+    }
 
     return {
       total,
       open,
       inProgress,
       critical,
-      resolvedOrClosed
+      resolvedOrClosed,
     };
   } catch (error) {
     console.error("Error in getDashboardStats:", error);
@@ -48,7 +64,7 @@ export async function getDashboardStats() {
       open: 0,
       inProgress: 0,
       critical: 0,
-      resolvedOrClosed: 0
+      resolvedOrClosed: 0,
     };
   }
 }

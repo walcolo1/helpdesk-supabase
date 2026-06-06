@@ -27,6 +27,14 @@ export async function createResource(
   formData: FormData
 ) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET;
+
+    if (!supabaseUrl || !serviceKey || !bucket) {
+      return { error: "Storage no configurado. Verifique variables de Supabase." };
+    }
+
     const session = await auth();
     if (session?.user?.role !== "admin") {
       return { error: "No autorizado." };
@@ -54,7 +62,6 @@ export async function createResource(
 
     // Subir a Supabase Storage
     const supabase = getSupabaseAdmin();
-    const bucket = getStorageBucket();
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const { error: uploadError } = await supabase.storage
@@ -65,7 +72,7 @@ export async function createResource(
       });
 
     if (uploadError) {
-      console.error("Error uploading to Supabase Storage:", uploadError);
+      console.error("[resources:upload]", uploadError);
       return { error: "Error al subir el archivo al storage." };
     }
 

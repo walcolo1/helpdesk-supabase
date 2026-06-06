@@ -171,25 +171,53 @@ export async function createTicket(prevState: any, formData: FormData) {
       return { error: "Faltan campos obligatorios" };
     }
 
-    const ticketNumber = `TCK-${Math.floor(Math.random() * 1000000).toString().padStart(6, "0")}`;
+    let ticketNumber = "";
+    let ticket;
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    // Calcular SLA
-    const service = await prisma.service.findUnique({ where: { id: serviceId } });
-    const slaDeadline = service ? new Date(Date.now() + service.slaHours * 60 * 60 * 1000) : null;
+    while (attempts < maxAttempts) {
+      try {
+        const seqResult = await prisma.$queryRaw<{ nextval: bigint }[]>`
+          SELECT nextval('ticket_number_seq')::bigint
+        `;
+        const nextNumber = Number(seqResult[0].nextval);
+        ticketNumber = `TCK-${nextNumber}`;
 
-    const ticket = await prisma.ticket.create({
-      data: {
-        ticketNumber,
-        subject,
-        description,
-        categoryId,
-        serviceId,
-        priority: priority || "medium",
-        createdById: session.user.id,
-        status: TicketStatus.open,
-        slaDeadline,
-      },
-    });
+        // Calcular SLA
+        const service = await prisma.service.findUnique({ where: { id: serviceId } });
+        const slaDeadline = service ? new Date(Date.now() + service.slaHours * 60 * 60 * 1000) : null;
+
+        ticket = await prisma.ticket.create({
+          data: {
+            ticketNumber,
+            subject,
+            description,
+            categoryId,
+            serviceId,
+            priority: priority || "medium",
+            createdById: session.user.id,
+            status: TicketStatus.open,
+            slaDeadline,
+          },
+        });
+        break;
+      } catch (error: any) {
+        if (error.code === "P2002") {
+          attempts++;
+          if (attempts >= maxAttempts) {
+            throw error;
+          }
+          console.warn(`Unique constraint violation on ticketNumber: ${ticketNumber}. Retrying... Attempt ${attempts}/${maxAttempts}`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    if (!ticket) {
+      throw new Error("No se pudo crear el ticket. Conflicto de numeración.");
+    }
 
     // Registro de actividad: creación
     await logHistory(ticket.id, session.user.id, "created", null, ticketNumber);

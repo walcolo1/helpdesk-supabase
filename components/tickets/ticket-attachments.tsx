@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { uploadTicketAttachment } from "@/actions/attachments";
 import { Paperclip, Download, Loader2, UploadCloud, File as FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export function TicketAttachments({
   ticketId,
@@ -22,6 +23,7 @@ export function TicketAttachments({
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,8 +38,11 @@ export function TicketAttachments({
       if (!result.success) {
         const errResult = result as { success: false; error: string };
         alert(errResult.error || "Error al subir el archivo");
-      } else if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      } else {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        router.refresh();
       }
     } catch (error: any) {
       alert("Error inesperado al subir el archivo");
@@ -49,7 +54,7 @@ export function TicketAttachments({
   const formatSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };

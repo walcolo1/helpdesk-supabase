@@ -3,7 +3,8 @@
 import { useFormState, useFormStatus } from "react-dom";
 import { createResource } from "@/actions/resources";
 import { Upload, FilePlus, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 const initialState: { success?: string; error?: string } = {};
 
@@ -33,10 +34,14 @@ function SubmitButton() {
 export function ResourceUploadForm() {
   const [state, formAction] = useFormState(createResource, initialState);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
-  if (state?.success && formRef.current) {
-    formRef.current.reset();
-  }
+  useEffect(() => {
+    if (state?.success) {
+      formRef.current?.reset();
+      router.refresh();
+    }
+  }, [state?.success, router]);
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden">
