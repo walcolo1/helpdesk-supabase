@@ -20,8 +20,6 @@ export async function getTickets() {
   const where: any = {};
   if (role === "user") {
     where.createdById = userId;
-  } else if (role === "agent") {
-    where.assignedToId = userId;
   }
 
   return await prisma.ticket.findMany({
@@ -51,14 +49,13 @@ export async function getTicketQueue(filters?: { status?: string; categoryId?: s
   const role = session?.user?.role;
   const userId = session?.user?.id;
 
-  if (role === "agent" && userId) {
-    // Agents only see their own tickets, regardless of filters
-    where.assignedToId = userId;
-  } else {
-    // Admins can see filtered tickets
+  const isAgentOrAdmin = role === "admin" || role === "agent";
+  if (isAgentOrAdmin) {
     if (filters?.assignedToId) {
       where.assignedToId = filters.assignedToId === "null" ? null : filters.assignedToId;
     }
+  } else {
+    where.createdById = userId;
   }
 
   if (filters?.status) where.status = filters.status;
@@ -152,10 +149,10 @@ export async function getTicketById(id: string): Promise<TicketDetail> {
   const userId = session.user.id;
 
   const isAdmin = role === "admin";
+  const isAgent = role === "agent";
   const isOwner = ticket.createdById === userId;
-  const isAssignedAgent = role === "agent" && ticket.assignedToId === userId;
 
-  if (!isAdmin && !isOwner && !isAssignedAgent) {
+  if (!isAdmin && !isAgent && !isOwner) {
     return null;
   }
 
@@ -183,6 +180,27 @@ async function logHistory(
     });
   } catch {
     // La auditoría es best-effort; no bloquea el flujo principal
+  }
+}
+
+// Helper para autoasignar ticket a agente por interacción operativa si está sin asignar
+async function checkAndAutoAssign(ticketId: string, sessionUser: { id: string; role: string; name?: string | null }) {
+  if (sessionUser.role !== "agent") return;
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: { assignedToId: true }
+  });
+
+  if (ticket && !ticket.assignedToId) {
+    await prisma.ticket.update({
+      where: { id: ticketId },
+      data: { assignedToId: sessionUser.id }
+    });
+
+    // Registrar en el historial
+    await logHistory(ticketId, sessionUser.id, "assignedToId", null, sessionUser.id);
+    await logHistory(ticketId, sessionUser.id, "auto_assignment", null, sessionUser.name || "Agente");
   }
 }
 
@@ -296,6 +314,8 @@ export async function resolveTicket(ticketId: string, formData: FormData) {
   const role = session.user.role;
   if (role !== "admin" && role !== "agent") throw new Error("Sin autorización");
 
+  await checkAndAutoAssign(ticketId, session.user);
+
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId }, select: { status: true } });
   if (!ticket) throw new Error("Ticket no encontrado");
 
@@ -327,6 +347,8 @@ export async function closeTicket(ticketId: string, formData: FormData) {
 
   const role = session.user.role;
   if (role !== "admin" && role !== "agent") throw new Error("Sin autorización");
+
+  await checkAndAutoAssign(ticketId, session.user);
 
   const ticket = await prisma.ticket.findUnique({ where: { id: ticketId }, select: { status: true } });
   if (!ticket) throw new Error("Ticket no encontrado");
@@ -434,6 +456,10 @@ export async function updateTicket(ticketId: string, formData: FormData) {
     if (resolvedAssignee !== undefined && resolvedAssignee !== ticket.assignedToId) {
       data.assignedToId = resolvedAssignee;
       activities.push({ field: "assignedToId", old: ticket.assignedToId, new: resolvedAssignee });
+    } else if (role === "agent" && !ticket.assignedToId) {
+      data.assignedToId = session.user.id;
+      activities.push({ field: "assignedToId", old: null, new: session.user.id });
+      await logHistory(ticketId, session.user.id, "auto_assignment", null, session.user.name);
     }
   }
 
@@ -480,6 +506,8 @@ export async function createComment(ticketId: string, formData: FormData) {
   const session = await auth();
   if (!session?.user) throw new Error("No autenticado");
 
+  await checkAndAutoAssign(ticketId, session.user);
+
   const ticket = await prisma.ticket.findUnique({
     where: { id: ticketId },
     select: { createdById: true, assignedToId: true }
@@ -525,15 +553,27 @@ export async function searchTicket(query: string) {
 
   if (!query || query.trim() === "") return { error: "Búsqueda vacía" };
 
-  const cleanQuery = query.trim();
+  let cleanQuery = query.trim();
 
-  // Buscar por número de ticket exacto o parcial (como TCK-...) o ID
+  // Validar formato: solo dígitos o TCK-dígitos (insensible a mayúsculas/minúsculas)
+  const isDigits = /^\d+$/.test(cleanQuery);
+  const isTckFormat = /^TCK-\d+$/i.test(cleanQuery);
+
+  if (!isDigits && !isTckFormat) {
+    return { error: "Búsqueda inválida. Solo se permite filtrar por número de ticket exacto." };
+  }
+
+  // Normalizar: 60001 -> TCK-60001
+  if (isDigits) {
+    cleanQuery = `TCK-${cleanQuery}`;
+  } else {
+    cleanQuery = cleanQuery.toUpperCase();
+  }
+
+  // Buscar por número de ticket exacto
   const ticket = await prisma.ticket.findFirst({
     where: {
-      OR: [
-        { ticketNumber: { contains: cleanQuery } },
-        { id: cleanQuery },
-      ],
+      ticketNumber: cleanQuery,
     },
     select: {
       id: true,
@@ -548,10 +588,10 @@ export async function searchTicket(query: string) {
   const userId = session.user.id;
 
   const isAdmin = role === "admin";
+  const isAgent = role === "agent";
   const isOwner = ticket.createdById === userId;
-  const isAssignedAgent = role === "agent" && ticket.assignedToId === userId;
 
-  if (!isAdmin && !isOwner && !isAssignedAgent) {
+  if (!isAdmin && !isAgent && !isOwner) {
     return { error: "Acceso denegado: no tienes permisos para ver este ticket" };
   }
 

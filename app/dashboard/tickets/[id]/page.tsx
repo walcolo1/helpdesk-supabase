@@ -89,10 +89,10 @@ export default async function TicketDetailPage({
   const checkRole = session.user.role;
   const userId = session.user.id;
   const isAdmin = checkRole === "admin";
+  const isAgent = checkRole === "agent";
   const isTicketOwner = ticketInfo.createdById === userId;
-  const isAssignedAgent = checkRole === "agent" && ticketInfo.assignedToId === userId;
 
-  if (!isAdmin && !isTicketOwner && !isAssignedAgent) {
+  if (!isAdmin && !isAgent && !isTicketOwner) {
     redirect("/dashboard/tickets");
   }
 

@@ -13,6 +13,7 @@ const fieldLabels: Record<string, string> = {
   subject: "Asunto",
   description: "Descripción",
   attachment: "Archivo Adjunto",
+  auto_assignment: "Autoasignación",
 };
 
 const statusLabels: Record<string, string> = {
@@ -55,7 +56,7 @@ function DotIcon({ field }: { field: string }) {
   if (field === "created") return <span className={`${base} bg-emerald-100 text-emerald-700`}>✦</span>;
   if (field === "status") return <span className={`${base} bg-blue-100 text-blue-700`}>≡</span>;
   if (field === "priority") return <span className={`${base} bg-orange-100 text-orange-700`}>!</span>;
-  if (field === "assignedToId") return <span className={`${base} bg-purple-100 text-purple-700`}>→</span>;
+  if (field === "assignedToId" || field === "auto_assignment") return <span className={`${base} bg-purple-100 text-purple-700`}>→</span>;
   if (field === "subject" || field === "description") return <span className={`${base} bg-gray-100 text-gray-700`}>T</span>;
   if (field === "attachment") return <span className={`${base} bg-blue-50 text-blue-600`}>@</span>;
   return <span className={`${base} bg-gray-100 text-gray-500`}>·</span>;
@@ -66,6 +67,15 @@ function DotIcon({ field }: { field: string }) {
 function HistoryEventText({ event }: { event: HistoryEvent }) {
   const { field, oldValue, newValue, user } = event;
   const actor = user.name;
+
+  if (field === "auto_assignment") {
+    return (
+      <span>
+        El ticket fue asignado automáticamente al agente{" "}
+        <strong className="font-medium text-gray-900">{newValue}</strong> por interacción operativa.
+      </span>
+    );
+  }
 
   if (field === "created") {
     return (

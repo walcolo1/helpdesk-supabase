@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { headers } from "next/headers";
-import { Search } from "lucide-react";
+import { TicketSearch } from "@/components/tickets/ticket-search";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -37,15 +37,7 @@ export default async function DashboardLayout({
           <div className="flex items-center gap-4 flex-1 sm:flex-initial">
             <MobileSidebar session={session} />
             <div className="relative w-full hidden sm:block sm:w-72 md:w-96">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <Search size={16} />
-              </span>
-              <input
-                type="text"
-                placeholder="Buscar incidentes, usuarios o recursos..."
-                disabled
-                className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#f8fafc] border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0051d5] focus:border-[#0051d5] text-gray-700 placeholder-gray-400 cursor-not-allowed"
-              />
+              <TicketSearch variant="topbar" placeholder="Buscar número de ticket…" />
             </div>
           </div>
           

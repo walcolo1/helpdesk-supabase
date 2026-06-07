@@ -106,7 +106,7 @@ export async function uploadTicketAttachment(ticketId: string, formData: FormDat
 
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
-      select: { id: true, createdById: true },
+      select: { id: true, createdById: true, assignedToId: true },
     });
 
     if (!ticket) return { success: false, error: "Ticket no encontrado" };
@@ -116,6 +116,36 @@ export async function uploadTicketAttachment(ticketId: string, formData: FormDat
 
     const result = await saveAttachmentRecord(ticketId, session.user.id, file);
     if (!result.success) return result;
+
+    // Auto-asignación si el rol es agente y no tiene asignado
+    if (session.user.role === "agent" && !ticket.assignedToId) {
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: { assignedToId: session.user.id },
+      });
+      try {
+        await prisma.ticketHistory.create({
+          data: {
+            ticketId,
+            userId: session.user.id,
+            field: "assignedToId",
+            oldValue: null,
+            newValue: session.user.id,
+          },
+        });
+        await prisma.ticketHistory.create({
+          data: {
+            ticketId,
+            userId: session.user.id,
+            field: "auto_assignment",
+            oldValue: null,
+            newValue: session.user.name || "Agente",
+          },
+        });
+      } catch {
+        // best effort
+      }
+    }
 
     revalidatePath(`/dashboard/tickets/${ticketId}`);
     return { success: true };
