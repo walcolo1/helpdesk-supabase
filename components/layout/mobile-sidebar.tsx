@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/actions/auth";
-import { Menu, X, LayoutDashboard, Ticket, Users, LogOut, BarChart3, Zap, List, Settings } from "lucide-react";
+import { Menu, X, LayoutDashboard, Ticket, Users, LogOut, BarChart3, Zap, List, Settings, HardDrive } from "lucide-react";
 import type { Session } from "next-auth";
 
 export function MobileSidebar({ session }: { session: Session }) {
@@ -123,6 +123,10 @@ export function MobileSidebar({ session }: { session: Session }) {
               <Link href="/dashboard/settings" className={getLinkClass("/dashboard/settings")}>
                 <Settings size={18} />
                 Configuración
+              </Link>
+              <Link href="/dashboard/storage" className={getLinkClass("/dashboard/storage")}>
+                <HardDrive size={18} />
+                Almacenamiento
               </Link>
             </>
           )}

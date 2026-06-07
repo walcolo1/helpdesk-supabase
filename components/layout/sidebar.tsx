@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/actions/auth";
-import { LayoutDashboard, Ticket, Users, LogOut, BarChart3, Zap, List, Settings } from "lucide-react";
+import { LayoutDashboard, Ticket, Users, LogOut, BarChart3, Zap, List, Settings, HardDrive } from "lucide-react";
 import type { Session } from "next-auth";
 
 export function Sidebar({ session }: { session: Session }) {
@@ -84,6 +84,13 @@ export function Sidebar({ session }: { session: Session }) {
             >
               <Settings size={16} />
               Configuración
+            </Link>
+            <Link 
+              href="/dashboard/storage" 
+              className={getLinkClass("/dashboard/storage")}
+            >
+              <HardDrive size={16} />
+              Almacenamiento
             </Link>
           </>
         )}
