@@ -402,11 +402,11 @@ export function UserTable({ users, currentUserId, isAdmin }: { users: UserWithCo
 
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1">Nueva Contraseña Temporal</label>
-                <input required type="password" name="newPassword" minLength={6} className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input required type="password" name="newPassword" minLength={8} pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$" title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial." placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 especial" className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1">Confirmar Contraseña Temporal</label>
-                <input required type="password" name="confirmPassword" minLength={6} className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <input required type="password" name="confirmPassword" minLength={8} pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$" title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial." placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 especial" className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               </div>
               <div className="flex items-center gap-2 pt-2">
                 <input type="checkbox" id="mustChangePassword" name="mustChangePassword" defaultChecked className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600" />

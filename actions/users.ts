@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 import bcrypt from "bcryptjs";
+import { validatePasswordStrength, PASSWORD_REQUIREMENTS_MESSAGE } from "@/lib/password-validation";
 
 export async function getUsers(query?: string, role?: string) {
   const session = await auth();
@@ -130,8 +131,8 @@ export async function resetUserPassword(
     return { error: "Las contraseñas no coinciden." };
   }
 
-  if (newPassword.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  if (!validatePasswordStrength(newPassword)) {
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE };
   }
 
   if (userId === session.user.id) {
@@ -220,8 +221,8 @@ export async function createUser(
     return { error: "Nombre, email, rol y contraseña temporal son requeridos." };
   }
 
-  if (password.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres." };
+  if (!validatePasswordStrength(password)) {
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE };
   }
 
   try {

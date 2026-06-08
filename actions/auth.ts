@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import crypto from "crypto";
+import { validatePasswordStrength, PASSWORD_REQUIREMENTS_MESSAGE } from "@/lib/password-validation";
 
 export async function authenticate(
   prevState: string | undefined,
@@ -52,8 +53,8 @@ export async function register(
       return 'Las contraseñas no coinciden.';
     }
 
-    if (password.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres.';
+    if (!validatePasswordStrength(password)) {
+      return PASSWORD_REQUIREMENTS_MESSAGE;
     }
 
     // Extraer dominio después de @

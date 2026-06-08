@@ -65,7 +65,7 @@ export function UserCreateModal({ onClose }: { onClose: () => void }) {
 
           <div className="border-t border-gray-100 pt-4 mt-2">
             <label className="text-sm font-medium text-gray-700 block mb-1">Contraseña Temporal</label>
-            <input required type="text" name="password" minLength={6} className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Mínimo 6 caracteres" />
+            <input required type="text" name="password" minLength={8} pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$" title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial." className="w-full h-10 px-3 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 especial" />
           </div>
 
           <div className="flex items-center gap-2 pt-1">

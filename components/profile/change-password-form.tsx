@@ -14,10 +14,16 @@ function PasswordInput({
   id,
   name,
   placeholder,
+  minLength,
+  pattern,
+  title,
 }: {
   id: string;
   name: string;
   placeholder: string;
+  minLength?: number;
+  pattern?: string;
+  title?: string;
 }) {
   const [show, setShow] = useState(false);
   const { pending } = useFormStatus();
@@ -30,6 +36,9 @@ function PasswordInput({
         placeholder={placeholder}
         required
         disabled={pending}
+        minLength={minLength}
+        pattern={pattern}
+        title={title}
         className={`${inputClass} pr-10`}
       />
       <button
@@ -126,7 +135,10 @@ export function ChangePasswordForm() {
             <PasswordInput
               id="newPassword"
               name="newPassword"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 especial"
+              minLength={8}
+              pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$"
+              title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial."
             />
           </div>
 
@@ -138,6 +150,9 @@ export function ChangePasswordForm() {
               id="confirmPassword"
               name="confirmPassword"
               placeholder="Repite la nueva contraseña"
+              minLength={8}
+              pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$"
+              title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial."
             />
           </div>
         </div>

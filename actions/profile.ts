@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { validatePasswordStrength, PASSWORD_REQUIREMENTS_MESSAGE } from "@/lib/password-validation";
 
 export async function changeUserPassword(
   prevState: { error?: string; success?: string },
@@ -24,8 +25,8 @@ export async function changeUserPassword(
     return { error: "Todos los campos son obligatorios." };
   }
 
-  if (newPassword.length < 6) {
-    return { error: "La nueva contraseña debe tener mínimo 6 caracteres." };
+  if (!validatePasswordStrength(newPassword)) {
+    return { error: PASSWORD_REQUIREMENTS_MESSAGE };
   }
 
   if (newPassword !== confirmPassword) {

@@ -123,7 +123,10 @@ export default function RegisterForm() {
                   id="password" 
                   type="password" 
                   name="password" 
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 especial"
+                  minLength={8}
+                  pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$"
+                  title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial."
                   required 
                   className="pl-10 h-10 border-gray-300 rounded-lg focus-visible:ring-[#0051d5] focus-visible:border-[#0051d5] transition-all"
                 />
@@ -143,6 +146,9 @@ export default function RegisterForm() {
                   type="password" 
                   name="confirmPassword" 
                   placeholder="Repite tu contraseña"
+                  minLength={8}
+                  pattern="^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$"
+                  title="La contraseña debe tener mínimo 8 caracteres, una letra mayúscula y un carácter especial."
                   required 
                   className="pl-10 h-10 border-gray-300 rounded-lg focus-visible:ring-[#0051d5] focus-visible:border-[#0051d5] transition-all"
                 />
